@@ -1,32 +1,29 @@
 require 'time'
 require 'octokit'
 
-def fetch_events_for_user_since_time(user_name, user_password, since_time)
-  client = Octokit::Client.new(:login => user_name, :password => user_password)
-  page = 0
-  events = []
-  while true
-    page_events = client.user_events(user_name, {"page"=>page})
 
-    
-    page_events.each do |event|
-      if Time.iso8601(event.created_at)>since_time
-        events << event
-      else
-        page_events = []
-      end
-    end
-    
-    if page_events.empty?
-      break
-    end
-    
-    page += 1
+
+class GithubFetcher
+  def initialize(user_name, user_password)
+    @user_name = user_name
+    @user_password = user_password
+    @client = Octokit::Client.new(:login => user_name, :password => user_password)
   end
-  return events
+
+  def events_since_time(since_time)
+    page = 0
+    events = []
+
+    begin
+      unfiltered_page_events = @client.user_events(@user_name, {"page"=>page})
+      page_events = unfiltered_page_events.find_all do |event|
+        Time.iso8601(event.created_at)>since_time
+      end
+      events += page_events
+      page +=1
+    end until page_events.empty?
+    
+    return events
+  end
+
 end
-
-
-
-since = Time.iso8601("2012-01-28T21:05:03Z")
-puts fetch_events_for_user_since_time("darvin", "mustdie", since).count

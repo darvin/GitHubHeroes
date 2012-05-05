@@ -54,6 +54,18 @@ class HeroType
   
 end
 
+
+class Action
+  attr_reader :type, :event, :time
+  attr_accessor :result, :text 
+  def initialize(github_event)
+    @type = github_event.type
+    @event = github_event
+    @time = Time.iso8601(event.created_at)
+  end
+end
+
+
 class Hero
   attr_reader :name
   def initialize(name, hero_type, params, cities=[], minerals={})
@@ -71,6 +83,60 @@ class Hero
   def gain_expirience(xp)
     
   end
+  
+  def perform_github_events(github_events)
+    github_events.each do |event|
+      action = Action.new(event)
+      self.perform_action(action)
+    end
+  end
+  
+  def perform_action(action)
+    
+    result = self.send("action_"+action.type, action)
+    if result
+      action.comment = result["comment"]
+      action.result = result["result"]
+    end
+    #write action
+    
+  end
+  
+  def action_PushEvent(action)
+  end
+  
+  def action_CommitCommentEvent(action)
+  end
+  
+  def action_FollowEvent(action)
+  end
+  
+  def action_IssuesEvent(action)
+  end
+  
+  def action_GollumEvent(action)
+  end
+  
+  def action_CreateEvent(action)
+  end
+  
+  def action_WatchEvent(action)
+  end
+  
+  def action_IssueCommentEvent(action)
+  end
+  
+  def action_MemberEvent(action)
+  end
+  
+  def action_GistEvent(action)
+  end
+  
+  def action_CommitCommentEvent(action)
+  end
+  
+  # def action_(action)
+  # end
 
 end
 
