@@ -3,6 +3,11 @@
 :gold
 :stone
 
+
+class SummableHash < Hash
+  
+end
+
 class CreatureType
   attr_reader :name, :level, :faction, :mineral_cost
   def initialize(name, faction, level, mineral_cost)
@@ -11,6 +16,19 @@ class CreatureType
     @faction = faction
     @faction.add_creature_type(self)
     @mineral_cost = mineral_cost
+  end
+  
+  def raising_cost
+    return {
+      1=>0.1,
+      2=>1.1,
+      3=>3,
+      4=>7,
+      5=>12,
+      6=>21,
+      7=>34,
+      8=>121,
+      }[@level]
   end
   
 end
@@ -75,9 +93,12 @@ class Faction
   
 end
 
+
+
 class City
-  attr_reader :name, :faction, :hero
-  def initialize(name, faction, hero=nil,  creatures=[], creatures_hired = [])
+  attr_reader :name, :faction, :hero, :creatures, :creatures_hired
+  def initialize( name, faction, hero=nil, parent_city=nil,  creatures={}, creatures_hired = {})
+    @parent_city = parent_city
     @name = name
     @hero = hero
     @creatures = creatures
@@ -90,29 +111,9 @@ class City
   def hire_all_creatures
   end
   
-end
-
-class CityOutpost < City
-  def initialize(city, hero, creatures=[], creatures_hired = [])
-    super("#{hero.name} outpost of #{city.name}", city.faction, hero, creatures, creatures_hired)
-    @city_to_attack = city
+  def attack_city(city)
   end
   
-  def attack_city
-  end
   
 end
 
-
-hero = Hero.new("darvin", [], {:iron=>3, :gold=>4})
-puts hero.inspect
-desert = Faction.new("Desert")
-goblin = CreatureType.new("Goblin", desert, 1, {:iron=>1})
-puts desert.inspect
-puts goblin.inspect
-
-gonduras = City.new("Gonduras", desert)
-gonduras_outpost = CityOutpost.new(gonduras, hero)
-
-puts gonduras.inspect
-puts gonduras_outpost.inspect
