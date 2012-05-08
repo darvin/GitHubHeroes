@@ -5,6 +5,27 @@
 
 
 class SummableHash < Hash
+  def initialize(hash={})
+    super(hash)
+    self.default = 0
+  end
+  def +(another_hash)
+    result = SummableHash.new
+    Set.new(self.keys+another_hash.keys).each { |key|
+      result[key] = self[key]+another_hash[key]
+    }
+    return result
+  end
+  def -(another_hash)
+    result = SummableHash.new
+    Set.new(self.keys+another_hash.keys).each { |key|
+      r = self[key]+another_hash[key]
+      r = 0 if r < 0
+      result[key] = r
+    }
+    return result
+  end
+  
   
 end
 
@@ -156,6 +177,12 @@ class Faction
     return @creature_types[creature_level]
   end
   
+  def each_creature_type
+    @creature_types.values.each { |creature_type|
+      yield creature_type
+    }
+  end
+  
   
 end
 
@@ -163,15 +190,22 @@ end
 
 class City
   attr_reader :name, :faction, :hero, :creatures, :creatures_hired
-  def initialize( name, faction, hero=nil, parent_city=nil,  creatures={}, creatures_hired = {})
+  def initialize( name, faction, hero=nil, parent_city=nil,  creatures=SummableHash.new, creatures_hired = SummableHash.new)
     @parent_city = parent_city
     @name = name
     @hero = hero
+    @faction = faction
     @creatures = creatures
     @creatures_hired = creatures_hired
   end
   
   def raise_creatures_for_straight(straight)
+    additional_creatures = SummableHash.new
+    @faction.each_creature_type { |creature_type|
+      additional_creatures[creature_type] = straight/creature_type.raising_cost
+    }
+    @creatures += additional_creatures
+    
   end
   
   def hire_all_creatures
